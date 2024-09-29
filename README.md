@@ -1,8 +1,5 @@
-soled #1
-# RAG-Model-for-QA-Bot
-Here's a detailed README file you can use for your project on GitHub, titled **Contextualized Query Expansion via Unsupervised Chunk Selection (CQE-UCS) using LangChain and Pinecone**.
 
----
+# RAG-Model-for-QA-Bot
 
 # **Contextualized Query Expansion via Unsupervised Chunk Selection (CQE-UCS)**
 
@@ -109,7 +106,7 @@ The system is built on the **Retrieval-Augmented Generation (RAG)** framework, w
 - **Git**: Version control.
   
 
-```
+
 
 ## **Contributing**
 We welcome contributions to improve the project! If you have any suggestions or want to report issues, please create an issue or a pull request.
@@ -121,6 +118,4 @@ We welcome contributions to improve the project! If you have any suggestions or 
 5. Open a pull request
 
 
-
----
 
