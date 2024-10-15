@@ -1,0 +1,91 @@
+# multi_lingual_qa.py
+
+# Import necessary libraries
+from transformers import pipeline  # Importing the Hugging Face transformers library for QA
+from googletrans import Translator  # Importing the Google Translate API for translation
+from langdetect import detect  # Importing language detection library
+import logging  # Importing logging module to track activities
+
+# Set up logging configuration
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Initialize the translation service using Google Translate API
+translator = Translator()
+
+# Initialize the RAG model for question answering using Hugging Face
+qa_pipeline = pipeline("question-answering", model="facebook/rag-token-nq")
+
+def detect_language(text):
+    """
+    Detect the language of the input text.
+    
+    Args:
+        text (str): The text for which to detect the language.
+        
+    Returns:
+        str: The detected language code (e.g., 'en' for English).
+    """
+    try:
+        language = detect(text)  # Detect the language using langdetect
+        logging.info(f"Detected language: {language}")  # Log detected language
+        return language  # Return the detected language code
+    except Exception as e:
+        logging.error(f"Error in language detection: {str(e)}")  # Log error if detection fails
+        return 'en'  # Default to English if detection fails
+
+def translate_text(text, target_language):
+    """
+    Translate text into the target language using Google Translate.
+    
+    Args:
+        text (str): The text to translate.
+        target_language (str): The language code to translate to (e.g., 'en').
+        
+    Returns:
+        str: The translated text.
+    """
+    try:
+        translation = translator.translate(text, dest=target_language)  # Translate text to the target language
+        logging.info(f"Translated '{text}' to '{translation.text}' in '{target_language}'")  # Log translation
+        return translation.text  # Return the translated text
+    except Exception as e:
+        logging.error(f"Error in translation: {str(e)}")  # Log error if translation fails
+        return text  # Return the original text if translation fails
+
+def multilingual_qa_system(question, context):
+    """
+    Multi-lingual QA System that processes a question and context,
+    providing an answer in the original language of the question.
+    
+    Args:
+        question (str): The user's question.
+        context (str): The context or documents to search for the answer.
+        
+    Returns:
+        str: The answer to the question in the user's original language.
+    """
+    # Step 1: Detect the input language of the question
+    input_language = detect_language(question)  # Call the detect_language function to identify the question's language
+
+    # Step 2: Translate the question to English if it's not already in English
+    if input_language != 'en':  # Check if the detected language is not English
+        question_in_english = translate_text(question, target_language='en')  # Translate to English
+    else:
+        question_in_english = question  # No translation needed if already in English
+
+    # Step 3: Perform question-answering using the RAG model
+    try:
+        result = qa_pipeline(question=question_in_english, context=context)  # Get the answer from the model
+        answer_in_english = result['answer']  # Extract the answer from the result
+        logging.info(f"Answer generated in English: {answer_in_english}")  # Log the generated answer
+    except Exception as e:
+        logging.error(f"Error in QA pipeline: {str(e)}")  # Log error if the QA model fails
+        return "I'm sorry, I couldn't generate an answer."  # Return error message if QA fails
+
+    # Step 4: Translate the answer back to the original language if necessary
+    if input_language != 'en':  # Check if the original question was not in English
+        answer = translate_text(answer_in_english, target_language=input_language)  # Translate the answer back
+    else:
+        answer = answer_in_english  # No translation needed if already in English
+
+    return answer  # Return the final answer in the user's original language
